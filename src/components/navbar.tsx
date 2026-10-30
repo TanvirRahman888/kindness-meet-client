@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Menu,
   X,
@@ -13,18 +13,17 @@ import {
   BookmarkCheck,
   LogOut,
   LogIn,
+  Loader2,
 } from "lucide-react";
+import Swal from "sweetalert2";
+
 import ThemeToggle from "@/components/theme-toggle";
+import { authClient } from "@/app/lib/auth-client";
 
 type NavbarUser = {
   name: string;
-  email?: string;
+  email: string;
   image?: string | null;
-};
-
-type NavbarProps = {
-  user?: NavbarUser | null;
-  onLogout?: () => void | Promise<void>;
 };
 
 const navLinks = [{ label: "Upcoming Events", href: "/upcoming-events" }];
@@ -47,6 +46,7 @@ const privateLinks = [
   },
 ];
 
+// User Avatar
 function UserAvatar({ user }: { user: NavbarUser }) {
   const initials = user.name
     .trim()
@@ -68,20 +68,34 @@ function UserAvatar({ user }: { user: NavbarUser }) {
           className="size-full object-cover"
         />
       ) : (
-        initials
+        initials || "U"
       )}
     </div>
   );
 }
 
-export default function Navbar({ user = null, onLogout }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const navbarRef = useRef<HTMLElement>(null);
 
+  // Better Auth Session
+  const { data: session, isPending } = authClient.useSession();
+
+  const user = session?.user ?? null;
+
+  // Navbar States
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // Close menus when clicking outside or pressing Escape.
+  // Close menus
+  const closeMenus = () => {
+    setMobileOpen(false);
+    setProfileOpen(false);
+  };
+
+  // Close menus on outside click or Escape
   useEffect(() => {
     const handleOutsideClick = (event: PointerEvent) => {
       if (
@@ -109,16 +123,62 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
     };
   }, []);
 
-  const closeMenus = () => {
-    setMobileOpen(false);
-    setProfileOpen(false);
+  // Logout
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    const result = await Swal.fire({
+      title: "Logout?",
+      text: "Are you sure you want to logout?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Logout",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#B44942",
+      background: "var(--surface)",
+      color: "var(--foreground)",
+    });
+
+    if (!result.isConfirmed) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        throw new Error(error.message || "Logout failed");
+      }
+
+      closeMenus();
+
+      await Swal.fire({
+        icon: "success",
+        title: "Logged Out!",
+        text: "See you again soon!",
+        timer: 1200,
+        showConfirmButton: false,
+        background: "var(--surface)",
+        color: "var(--foreground)",
+      });
+
+      router.replace("/");
+      router.refresh();
+    } catch {
+      await Swal.fire({
+        icon: "error",
+        title: "Logout Failed",
+        text: "Please try again.",
+        confirmButtonColor: "#B44942",
+        background: "var(--surface)",
+        color: "var(--foreground)",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
-  const handleLogout = () => {
-    closeMenus();
-    void onLogout?.();
-  };
-
+  // Active Link
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
@@ -127,7 +187,7 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
       ref={navbarRef}
       className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 shadow-sm backdrop-blur-xl"
     >
-      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -141,7 +201,7 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
             width={180}
             height={60}
             priority
-            className="h-auto w-37.5 object-contain sm:w-[45"
+            className="h-auto w-[150px] object-contain sm:w-[180px]"
           />
         </Link>
 
@@ -164,11 +224,16 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
 
         {/* Right Side */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Theme Toggle */}
           <ThemeToggle />
 
           {/* Desktop Authentication */}
           <div className="hidden md:block">
-            {user ? (
+            {/* Loading */}
+            {isPending ? (
+              <div className="size-10 animate-pulse rounded-full bg-default" />
+            ) : user ? (
+              /* Logged In */
               <div className="relative">
                 <button
                   type="button"
@@ -180,6 +245,7 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
                   className="flex items-center gap-2 rounded-full border border-border bg-surface p-1.5 pr-3 transition-colors hover:bg-accent/10"
                 >
                   <UserAvatar user={user} />
+
                   <ChevronDown
                     size={16}
                     className={`text-muted transition-transform ${
@@ -194,15 +260,16 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
                     role="menu"
                     className="absolute right-0 top-[calc(100%+12px)] w-64 rounded-2xl border border-border bg-overlay p-2 text-overlay-foreground shadow-xl"
                   >
+                    {/* User Information */}
                     <div className="border-b border-border px-3 py-3">
                       <p className="truncate font-semibold">{user.name}</p>
-                      {user.email && (
-                        <p className="truncate text-xs text-muted">
-                          {user.email}
-                        </p>
-                      )}
+
+                      <p className="truncate text-xs text-muted">
+                        {user.email}
+                      </p>
                     </div>
 
+                    {/* Private Links */}
                     <div className="py-2">
                       {privateLinks.map((link) => {
                         const Icon = link.icon;
@@ -222,23 +289,28 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
                       })}
                     </div>
 
-                    {onLogout && (
-                      <div className="border-t border-border pt-2">
-                        <button
-                          type="button"
-                          role="menuitem"
-                          onClick={handleLogout}
-                          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/10"
-                        >
+                    {/* Logout */}
+                    <div className="border-t border-border pt-2">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={isLoggingOut}
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-danger transition-colors hover:bg-danger/10 disabled:opacity-50"
+                      >
+                        {isLoggingOut ? (
+                          <Loader2 size={17} className="animate-spin" />
+                        ) : (
                           <LogOut size={17} />
-                          Logout
-                        </button>
-                      </div>
-                    )}
+                        )}
+                        Logout
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
+              /* Logged Out */
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90"
@@ -263,7 +335,7 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
         </div>
       </nav>
 
-      {/* Mobile Dropdown - OVERLAYS PAGE CONTENT */}
+      {/* Mobile Dropdown */}
       {mobileOpen && (
         <div
           id="mobile-navigation"
@@ -288,20 +360,23 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
 
             <div className="my-2 border-t border-border" />
 
-            {user ? (
+            {/* Loading */}
+            {isPending ? (
+              <div className="flex items-center gap-3 px-4 py-3">
+                <div className="size-9 animate-pulse rounded-full bg-default" />
+                <div className="h-4 w-28 animate-pulse rounded bg-default" />
+              </div>
+            ) : user ? (
               <>
                 {/* User Information */}
                 <div className="flex items-center gap-3 px-4 py-3">
                   <UserAvatar user={user} />
+
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">
                       {user.name}
                     </p>
-                    {user.email && (
-                      <p className="truncate text-xs text-muted">
-                        {user.email}
-                      </p>
-                    )}
+                    <p className="truncate text-xs text-muted">{user.email}</p>
                   </div>
                 </div>
 
@@ -322,18 +397,23 @@ export default function Navbar({ user = null, onLogout }: NavbarProps) {
                   );
                 })}
 
-                {onLogout && (
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-danger hover:bg-danger/10"
-                  >
+                {/* Logout */}
+                <button
+                  type="button"
+                  disabled={isLoggingOut}
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-50"
+                >
+                  {isLoggingOut ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
                     <LogOut size={18} />
-                    Logout
-                  </button>
-                )}
+                  )}
+                  Logout
+                </button>
               </>
             ) : (
+              /* Login */
               <Link
                 href="/login"
                 onClick={closeMenus}

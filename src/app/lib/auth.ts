@@ -30,6 +30,14 @@ export const auth = betterAuth({
     },
   },
 
+  account: {
+    accountLinking: {
+      enabled: true,
+      disableImplicitLinking: false,
+      allowDifferentEmails: false,
+    },
+  },
+
   database: mongodbAdapter(db, {
     client,
   }),
