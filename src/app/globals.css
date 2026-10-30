@@ -110,3 +110,75 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* ==========================
+   KindnessMeet Hero Swiper
+========================== */
+
+.kindness-hero {
+  --swiper-navigation-color: #ffffff;
+  --swiper-pagination-color: #ffd9ba;
+}
+
+/* Navigation Buttons */
+.kindness-hero .swiper-button-next,
+.kindness-hero .swiper-button-prev {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  transition: background 0.3s ease;
+}
+
+.kindness-hero .swiper-button-next:hover,
+.kindness-hero .swiper-button-prev:hover {
+  background: #b44942;
+}
+
+.kindness-hero .swiper-button-next::after,
+.kindness-hero .swiper-button-prev::after {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Pagination */
+.kindness-hero .swiper-pagination {
+  bottom: 25px !important;
+}
+
+.kindness-hero .swiper-pagination-bullet {
+  width: 9px;
+  height: 9px;
+  background: #ffffff;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.kindness-hero .swiper-pagination-bullet-active {
+  width: 28px;
+  border-radius: 20px;
+  background: #ffd9ba;
+  opacity: 1;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .kindness-hero .swiper-button-next,
+  .kindness-hero .swiper-button-prev {
+    display: none;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .kindness-hero .swiper-button-next,
+  .kindness-hero .swiper-button-prev,
+  .kindness-hero .swiper-pagination-bullet {
+    transition: none;
+  }
+}
+

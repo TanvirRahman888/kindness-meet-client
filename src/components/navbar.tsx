@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +8,6 @@ import {
   Menu,
   X,
   ChevronDown,
-  CalendarDays,
   PlusCircle,
   Settings,
   BookmarkCheck,
@@ -29,9 +27,7 @@ type NavbarProps = {
   onLogout?: () => void | Promise<void>;
 };
 
-const navLinks = [
-  { label: "Upcoming Events", href: "/upcoming-events" },
-];
+const navLinks = [{ label: "Upcoming Events", href: "/upcoming-events" }];
 
 const privateLinks = [
   {
@@ -78,10 +74,7 @@ function UserAvatar({ user }: { user: NavbarUser }) {
   );
 }
 
-export default function Navbar({
-  user = null,
-  onLogout,
-}: NavbarProps) {
+export default function Navbar({ user = null, onLogout }: NavbarProps) {
   const pathname = usePathname();
   const navbarRef = useRef<HTMLElement>(null);
 
@@ -127,8 +120,7 @@ export default function Navbar({
   };
 
   const isActive = (href: string) =>
-    pathname === href ||
-    (href !== "/" && pathname.startsWith(`${href}/`));
+    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
   return (
     <header
@@ -203,9 +195,7 @@ export default function Navbar({
                     className="absolute right-0 top-[calc(100%+12px)] w-64 rounded-2xl border border-border bg-overlay p-2 text-overlay-foreground shadow-xl"
                   >
                     <div className="border-b border-border px-3 py-3">
-                      <p className="truncate font-semibold">
-                        {user.name}
-                      </p>
+                      <p className="truncate font-semibold">{user.name}</p>
                       {user.email && (
                         <p className="truncate text-xs text-muted">
                           {user.email}
@@ -353,11 +343,6 @@ export default function Navbar({
                 Login
               </Link>
             )}
-
-            <div className="mt-2 flex items-center justify-center gap-2 border-t border-border pt-4 text-xs text-muted">
-              <CalendarDays size={14} />
-              Small Acts. Big Impact.
-            </div>
           </div>
         </div>
       )}
