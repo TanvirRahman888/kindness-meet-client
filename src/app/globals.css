@@ -1,25 +1,111 @@
-@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tailwindcss";
+@import "@heroui/styles";
+
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* KindnessMeet brand utilities */
+  --color-brand-coral: var(--brand-coral);
+  --color-brand-peach: var(--brand-peach);
+  --color-brand-butter: var(--brand-butter);
+  --color-brand-cream: var(--brand-cream);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Light Theme */
+:root {
+  color-scheme: light;
+
+  /* Brand Colors */
+  --brand-coral: #E78478;
+  --brand-peach: #FFD9BA;
+  --brand-butter: #FFF1BC;
+  --brand-cream: #FFF9EF;
+
+  /* HeroUI Colors */
+  --background: #FFF9EF;
+  --foreground: #45302F;
+
+  --surface: #FFFFFF;
+  --surface-foreground: #45302F;
+
+  --overlay: #FFFFFF;
+  --overlay-foreground: #45302F;
+
+  --accent: #B44942;
+  --accent-foreground: #FFFFFF;
+
+  --default: #FFF1BC;
+  --default-foreground: #523A2D;
+
+  --muted: #76615E;
+  --border: #E9D6CC;
+  --separator: #E9D6CC;
+
+  --field-background: #FFFFFF;
+  --field-border: #E9D6CC;
+  --field-border-width: 1px;
+
+  --focus: #B44942;
+  --link: #B44942;
+
+  --success: #A05A3C;
+  --success-foreground: #FFFFFF;
+
+  --warning: #E7B858;
+  --warning-foreground: #45302F;
+
+  --danger: #A9323C;
+  --danger-foreground: #FFFFFF;
+
+  --radius: 0.875rem;
 }
 
+/* Dark Theme */
+.dark {
+  color-scheme: dark;
+
+  --background: #241B1C;
+  --foreground: #FFF4EC;
+
+  --surface: #302426;
+  --surface-foreground: #FFF4EC;
+
+  --overlay: #302426;
+  --overlay-foreground: #FFF4EC;
+
+  --accent: #F1A69E;
+  --accent-foreground: #2C1D1B;
+
+  --default: #493131;
+  --default-foreground: #FFE1D6;
+
+  --muted: #DDC4BE;
+  --border: #594448;
+  --separator: #594448;
+
+  --field-background: #382B2D;
+  --field-border: #695054;
+
+  --focus: #F1A69E;
+  --link: #F1A69E;
+
+  --success: #E3A57B;
+  --success-foreground: #2C1D1B;
+
+  --warning: #F7D48B;
+  --warning-foreground: #3A2920;
+
+  --danger: #F38B90;
+  --danger-foreground: #321719;
+}
+
+/* Global Styles */
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
