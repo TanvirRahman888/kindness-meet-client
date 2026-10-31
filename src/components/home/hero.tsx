@@ -186,7 +186,7 @@ export default function Hero() {
                     </Link>
 
                     <Link
-                      href="/create-event"
+                      href="/dashboard/create-event"
                       className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/70 bg-white px-5 py-3 text-sm font-semibold text-[#45302F] shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#FFF1BC] sm:px-6"
                     >
                       <HeartHandshake size={18} />
