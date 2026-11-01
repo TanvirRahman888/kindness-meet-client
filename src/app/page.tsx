@@ -1,9 +1,10 @@
-import ExploreCategories from "@/components/home/explore-categories";
-import ExploreCategoriesLoading from "@/components/home/explore-categories-loading";
-import Hero from "@/components/home/hero";
-import HeroStats from "@/components/home/hero-stats";
-import UpcomingEvents from "@/components/home/upcoming-events";
-import UpcomingEventsLoading from "@/components/home/upcoming-events-loading";
+import ExploreCategories from "@/components/home/Category/explore-categories";
+import ExploreCategoriesLoading from "@/components/home/Category/explore-categories-loading";
+import Hero from "@/components/home/Hero/hero";
+import HeroStats from "@/components/home/Hero/hero-stats";
+import HowItWorks from "@/components/home/how-it-works/how-it-works";
+import UpcomingEvents from "@/components/home/UpcomingEvents/upcoming-events";
+import UpcomingEventsLoading from "@/components/home/UpcomingEvents/upcoming-events-loading";
 import { Suspense } from "react";
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
       <Suspense fallback={<ExploreCategoriesLoading />}>
         <ExploreCategories />
       </Suspense>
+      <HowItWorks />
     </main>
   );
 }

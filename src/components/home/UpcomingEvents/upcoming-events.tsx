@@ -11,7 +11,7 @@ import EventCard, {
   type EventItem,
 } from "@/components/events/EventCard";
 
-import UpcomingEventsEmpty from "./upcoming-events-empty";
+import UpcomingEventsEmpty from "../UpcomingEvents/upcoming-events-empty";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
