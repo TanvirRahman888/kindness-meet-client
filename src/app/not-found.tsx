@@ -51,12 +51,12 @@ export default function NotFound() {
 
           <p className="mx-auto mt-5 max-w-lg text-sm leading-relaxed text-muted sm:text-base">
             Looks like this page has wandered off on its own
-            little adventure. The page you're looking for
-            doesn't exist or may have been moved.
+            little adventure. The page you are looking for
+            does not exist or may have been moved.
           </p>
 
           <p className="mt-3 text-sm font-medium text-accent">
-            Don't worry, there's still plenty of kindness to explore!
+            Do not worry, there is still plenty of kindness to explore!
           </p>
         </div>
 
