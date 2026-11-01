@@ -4,7 +4,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/app/lib/auth";
-import { UpdateEventData } from "./types";
+import { UpdateEventData } from "../../../components/events/manage-events/types";
 
 
 

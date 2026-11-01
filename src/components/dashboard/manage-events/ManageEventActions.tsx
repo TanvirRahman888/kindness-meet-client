@@ -17,7 +17,7 @@ import type {
   EventCategory,
   UpdateEventData,
 } from "./types";
-import { deleteManagedEvent, updateManagedEvent } from "./actions";
+import { deleteManagedEvent, updateManagedEvent } from "../../../app/dashboard/manage-events/actions";
 
 type Props = {
   event: ManagedEvent;

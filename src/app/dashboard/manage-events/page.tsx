@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 import { CalendarPlus } from "lucide-react";
-import ManageEventsLoading from "@/components/events/manage-events/ManageEventsLoading";
-import ManageEventsContent from "@/components/events/manage-events/ManageEventsContent";
+import ManageEventsLoading from "@/components/dashboard/manage-events/ManageEventsLoading";
+import ManageEventsContent from "@/components/dashboard/manage-events/ManageEventsContent";
 
 
 export default function ManageEventsPage() {
