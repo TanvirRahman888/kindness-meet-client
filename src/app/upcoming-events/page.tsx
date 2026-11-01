@@ -14,7 +14,7 @@ import {
 
 import EventCard, {
   type EventItem,
-} from "@/components/EventCard";
+} from "@/components/events/EventCard";
 
 type Category = {
   _id: string;
@@ -80,13 +80,10 @@ export default function UpcomingEventsPage() {
   // Live search, category filter, upcoming dates
   const filteredEvents = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const now = Date.now();
+
 
     return events
       .filter((event) => {
-        const upcoming =
-          new Date(event.eventDate).getTime() > now;
-
         const categoryMatch =
           selectedCategory === "all" ||
           event.category === selectedCategory;
@@ -103,7 +100,7 @@ export default function UpcomingEventsPage() {
           .toLowerCase()
           .includes(query);
 
-        return upcoming && categoryMatch && searchMatch;
+        return categoryMatch && searchMatch;
       })
       .sort(
         (a, b) =>

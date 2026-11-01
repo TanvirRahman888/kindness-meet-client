@@ -193,7 +193,7 @@ export default function Navbar() {
       ref={navbarRef}
       className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/80 shadow-sm backdrop-blur-xl"
     >
-      <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -207,7 +207,7 @@ export default function Navbar() {
             width={180}
             height={60}
             priority
-            className="h-auto w-[150px] object-contain sm:w-[180px]"
+            className="h-auto w-38 object-contain sm:w-45"
           />
         </Link>
 

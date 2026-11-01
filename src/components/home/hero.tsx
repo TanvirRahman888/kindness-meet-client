@@ -1,10 +1,10 @@
-
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, HeartHandshake } from "lucide-react";
+import { Suspense } from "react";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
@@ -93,112 +93,100 @@ export default function Hero() {
       className="relative w-full"
     >
       <div className="relative h-145 w-full overflow-hidden sm:h-155 lg:h-165">
-
         {/* Keep Swiper mounted while the skeleton is visible */}
-        <Swiper
-          modules={[
-            Autoplay,
-            Navigation,
-            Pagination,
-            EffectFade,
-            A11y,
-          ]}
-          effect="fade"
-          fadeEffect={{ crossFade: true }}
-          speed={800}
-          slidesPerView={1}
-          loop
-          navigation
-          pagination={{
-            clickable: true,
-          }}
-          autoplay={{
-            delay: 5000,
-            disableOnInteraction: false,
-            pauseOnMouseEnter: true,
-          }}
-          onSwiper={() => setSwiperReady(true)}
-          className="kindness-hero !h-full !w-full"
+        <Suspense
+          fallback={
+            <div className="h-112 animate-pulse rounded-2xl bg-accent/10 sm:h-137" />
+          }
         >
-          {slides.map((slide, index) => (
-            <SwiperSlide key={slide.id}>
-              <div className="relative flex h-full w-full items-center justify-center">
+          <Swiper
+            modules={[Autoplay, Navigation, Pagination, EffectFade, A11y]}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            speed={800}
+            slidesPerView={1}
+            loop
+            navigation
+            pagination={{
+              clickable: true,
+            }}
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            onSwiper={() => setSwiperReady(true)}
+            className="kindness-hero h-full! w-full!"
+          >
+            {slides.map((slide, index) => (
+              <SwiperSlide key={slide.id}>
+                <div className="relative flex h-full w-full items-center justify-center">
+                  {/* Background Image */}
+                  <Image
+                    src={slide.image}
+                    alt=""
+                    fill
+                    sizes="100vw"
+                    preload={index === 0}
+                    className="object-cover object-center"
+                    onLoad={
+                      index === 0 ? () => setFirstImageReady(true) : undefined
+                    }
+                    onError={
+                      index === 0 ? () => setFirstImageReady(true) : undefined
+                    }
+                  />
 
-                {/* Background Image */}
-                <Image
-                  src={slide.image}
-                  alt=""
-                  fill
-                  sizes="100vw"
-                  preload={index === 0}
-                  className="object-cover object-center"
-                  onLoad={
-                    index === 0
-                      ? () => setFirstImageReady(true)
-                      : undefined
-                  }
-                  onError={
-                    index === 0
-                      ? () => setFirstImageReady(true)
-                      : undefined
-                  }
-                />
+                  {/* Dark Overlay for Readability */}
+                  <div className="absolute inset-0 bg-black/55" />
 
-                {/* Dark Overlay for Readability */}
-                <div className="absolute inset-0 bg-black/55" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/65 via-transparent to-black/25" />
 
-                <div className="absolute inset-0 bg-linear-to-t from-black/65 via-transparent to-black/25" />
+                  {/* Slide Content */}
+                  <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-6 pb-10 text-center sm:px-12">
+                    {/* Badge */}
+                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-xs font-medium text-white backdrop-blur-md sm:text-sm">
+                      <HeartHandshake size={17} className="text-[#FFD9BA]" />
+                      Community-Driven Social Development
+                    </div>
 
-                {/* Slide Content */}
-                <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-6 pb-10 text-center sm:px-12">
+                    {/* Title */}
+                    <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+                      {slide.title}
+                      <span className="mt-2 block text-[#FFD9BA]">
+                        {slide.highlight}
+                      </span>
+                    </h1>
 
-                  {/* Badge */}
-                  <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 text-xs font-medium text-white backdrop-blur-md sm:text-sm">
-                    <HeartHandshake
-                      size={17}
-                      className="text-[#FFD9BA]"
-                    />
-                    Community-Driven Social Development
-                  </div>
+                    {/* Description */}
+                    <p className="mt-6 max-w-2xl text-sm leading-7 text-white/90 sm:text-base lg:text-lg">
+                      {slide.description}
+                    </p>
 
-                  {/* Title */}
-                  <h1 className="max-w-4xl text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
-                    {slide.title}
-                    <span className="mt-2 block text-[#FFD9BA]">
-                      {slide.highlight}
-                    </span>
-                  </h1>
+                    {/* Action Buttons */}
+                    <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+                      <Link
+                        href="/upcoming-events"
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#B44942] px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#963A35] sm:px-6"
+                      >
+                        Explore Events
+                        <ArrowRight size={18} />
+                      </Link>
 
-                  {/* Description */}
-                  <p className="mt-6 max-w-2xl text-sm leading-7 text-white/90 sm:text-base lg:text-lg">
-                    {slide.description}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-
-                    <Link
-                      href="/upcoming-events"
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#B44942] px-5 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#963A35] sm:px-6"
-                    >
-                      Explore Events
-                      <ArrowRight size={18} />
-                    </Link>
-
-                    <Link
-                      href="/dashboard/create-event"
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/70 bg-white px-5 py-3 text-sm font-semibold text-[#45302F] shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#FFF1BC] sm:px-6"
-                    >
-                      <HeartHandshake size={18} />
-                      Create an Event
-                    </Link>
-
+                      <Link
+                        href="/dashboard/create-event"
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/70 bg-white px-5 py-3 text-sm font-semibold text-[#45302F] shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#FFF1BC] sm:px-6"
+                      >
+                        <HeartHandshake size={18} />
+                        Create an Event
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </Suspense>
 
         {/* Loading Skeleton */}
         {isLoading && <HeroSkeleton />}

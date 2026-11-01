@@ -55,7 +55,7 @@ export default function EventCard({
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
 
       {/* Event Image */}
-      <div className="relative aspect-[16/10] overflow-hidden bg-brand-peach/30">
+      <div className="relative aspect-16/10 overflow-hidden bg-brand-peach/30">
         {event.imageUrl && !imageError ? (
           <Image
             src={event.imageUrl}
