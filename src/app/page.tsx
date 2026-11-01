@@ -5,6 +5,7 @@ import HeroStats from "@/components/home/Hero/hero-stats";
 import HowItWorks from "@/components/home/how-it-works/how-it-works";
 import UpcomingEvents from "@/components/home/UpcomingEvents/upcoming-events";
 import UpcomingEventsLoading from "@/components/home/UpcomingEvents/upcoming-events-loading";
+import WhyKindnessMeet from "@/components/home/Why-Choose-KindnessMeet/why-kindnessmeet";
 import { Suspense } from "react";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         <ExploreCategories />
       </Suspense>
       <HowItWorks />
+      <WhyKindnessMeet />
     </main>
   );
 }
