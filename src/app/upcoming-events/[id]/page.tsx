@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Swal from "sweetalert2";
@@ -32,7 +32,7 @@ type EventDetails = EventItem & {
 };
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL;
 
 export default function EventDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -218,25 +218,7 @@ export default function EventDetailsPage() {
 
   // Error
   if (error || !event) {
-    return (
-      <main className="mx-auto max-w-6xl px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-foreground">
-          Event Unavailable
-        </h1>
-
-        <p className="mt-3 text-sm text-muted">
-          {error || "This event could not be found."}
-        </p>
-
-        <Link
-          href="/upcoming-events"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white"
-        >
-          <ArrowLeft size={18} />
-          Back to Events
-        </Link>
-      </main>
-    );
+    notFound()
   }
 
   const date = new Date(event.eventDate);
