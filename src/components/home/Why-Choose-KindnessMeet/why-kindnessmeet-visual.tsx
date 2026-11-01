@@ -14,7 +14,7 @@ export default function WhyKindnessMeetVisual() {
       <div className="pointer-events-none absolute -bottom-3 left-4 right-4 top-3 rounded-[28px] bg-brand-peach/60" />
 
       {/* Image Container */}
-      <div className="relative isolate h-[350px] w-full overflow-hidden rounded-[26px] bg-accent/10 shadow-[0_20px_55px_-30px_rgba(69,48,47,0.3)] sm:h-[430px] lg:h-[520px] xl:h-[540px]">
+      <div className="relative isolate h-87 w-full overflow-hidden rounded-[26px] bg-accent/10 shadow-[0_20px_55px_-30px_rgba(69,48,47,0.3)] sm:h-107 lg:h-130 xl:h-135">
 
         {/* Main Image */}
         <Image

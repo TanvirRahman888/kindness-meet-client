@@ -1,5 +1,6 @@
 import ExploreCategories from "@/components/home/Category/explore-categories";
 import ExploreCategoriesLoading from "@/components/home/Category/explore-categories-loading";
+import GetInvolved from "@/components/home/get-involved/get-involved";
 import Hero from "@/components/home/Hero/hero";
 import HeroStats from "@/components/home/Hero/hero-stats";
 import HowItWorks from "@/components/home/how-it-works/how-it-works";
@@ -21,6 +22,7 @@ export default function Home() {
       </Suspense>
       <HowItWorks />
       <WhyKindnessMeet />
+      <GetInvolved />
     </main>
   );
 }
