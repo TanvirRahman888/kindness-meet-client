@@ -121,7 +121,7 @@ export default function UpcomingEventsPage() {
     <main className="min-h-screen bg-background">
 
       {/* Hero Section */}
-      <section className="relative flex min-h-[370px] items-center overflow-hidden sm:min-h-[440px]">
+      <section className="relative flex min-h-92 items-center overflow-hidden sm:min-h-110">
 
         {/* Hero Image */}
         <Image
@@ -314,7 +314,7 @@ export default function UpcomingEventsPage() {
                 key={index}
                 className="overflow-hidden rounded-2xl border border-border bg-surface"
               >
-                <div className="aspect-[16/10] animate-pulse bg-brand-peach/30" />
+                <div className="aspect-16/10 animate-pulse bg-brand-peach/30" />
 
                 <div className="space-y-4 p-5">
                   <div className="h-4 w-36 animate-pulse rounded bg-accent/10" />
