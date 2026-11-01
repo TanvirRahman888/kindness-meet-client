@@ -8,9 +8,7 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default function EventDetailsPage({
-  params,
-}: Props) {
+export default function EventDetailsPage({ params }: Props) {
   return (
     <Suspense fallback={<EventDetailsLoading />}>
       <EventDetailsContent params={params} />

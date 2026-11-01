@@ -1,3 +1,5 @@
+import ExploreCategories from "@/components/home/explore-categories";
+import ExploreCategoriesLoading from "@/components/home/explore-categories-loading";
 import Hero from "@/components/home/hero";
 import HeroStats from "@/components/home/hero-stats";
 import UpcomingEvents from "@/components/home/upcoming-events";
@@ -11,6 +13,9 @@ export default function Home() {
       <HeroStats/>
       <Suspense fallback={<UpcomingEventsLoading />}>
         <UpcomingEvents />
+      </Suspense>
+      <Suspense fallback={<ExploreCategoriesLoading />}>
+        <ExploreCategories />
       </Suspense>
     </main>
   );
