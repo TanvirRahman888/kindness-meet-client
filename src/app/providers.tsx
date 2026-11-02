@@ -1,5 +1,6 @@
 "use client";
 
+import Footer from "@/components/footer/footer";
 import { ThemeProvider } from "next-themes";
 
 export function Providers({
@@ -15,6 +16,7 @@ export function Providers({
       disableTransitionOnChange
     >
       {children}
+      <Footer/>
     </ThemeProvider>
   );
 }

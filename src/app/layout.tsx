@@ -23,6 +23,7 @@ export default function RootLayout({
             <Navbar />
           </Suspense>
           {children}
+          
         </Providers>
       </body>
     </html>

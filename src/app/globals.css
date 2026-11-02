@@ -182,3 +182,10 @@ body {
   }
 }
 
+@layer base {
+  p {
+    text-align: justify;
+    text-align-last: start;
+  }
+}
+
