@@ -27,7 +27,11 @@ type NavbarUser = {
   image?: string | null;
 };
 
-const navLinks = [{ label: "Upcoming Events", href: "/upcoming-events" }];
+const navLinks = [
+  { label: "Upcoming Events", href: "/upcoming-events" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
 
 const privateLinks = [
   {

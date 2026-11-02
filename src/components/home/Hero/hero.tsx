@@ -9,14 +9,12 @@ import { Suspense } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import {
   Autoplay,
-  Navigation,
   Pagination,
   EffectFade,
   A11y,
 } from "swiper/modules";
 
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
@@ -100,18 +98,17 @@ export default function Hero() {
           }
         >
           <Swiper
-            modules={[Autoplay, Navigation, Pagination, EffectFade, A11y]}
+            modules={[Autoplay, Pagination, EffectFade, A11y]}
             effect="fade"
             fadeEffect={{ crossFade: true }}
             speed={800}
             slidesPerView={1}
             loop
-            navigation
             pagination={{
               clickable: true,
             }}
             autoplay={{
-              delay: 5000,
+              delay: 3000,
               disableOnInteraction: false,
               pauseOnMouseEnter: true,
             }}

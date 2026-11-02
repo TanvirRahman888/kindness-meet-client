@@ -11,11 +11,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 
-import {
-  ArrowLeft,
-  ArrowRight,
-} from "lucide-react";
-
 import "swiper/css";
 
 type Props = {
@@ -31,31 +26,6 @@ export default function PastEventsSwiper({
 
   return (
     <div className="w-full">
-
-      {/* Navigation Buttons */}
-      <div className="mb-6 flex items-center justify-end gap-3">
-
-        {/* Previous */}
-        <button
-          type="button"
-          onClick={() => swiperRef.current?.slidePrev()}
-          aria-label="Previous past event"
-          className="flex size-11 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-accent hover:bg-accent hover:text-white"
-        >
-          <ArrowLeft size={19} />
-        </button>
-
-        {/* Next */}
-        <button
-          type="button"
-          onClick={() => swiperRef.current?.slideNext()}
-          aria-label="Next past event"
-          className="flex size-11 items-center justify-center rounded-full border border-border bg-surface text-foreground transition hover:border-accent hover:bg-accent hover:text-white"
-        >
-          <ArrowRight size={19} />
-        </button>
-
-      </div>
 
       {/* Swiper Carousel */}
       <Swiper
