@@ -27,8 +27,7 @@ type Category = {
   slug: string;
 };
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const initialForm = {
   title: "",
@@ -39,6 +38,7 @@ const initialForm = {
   imageUrl: "",
 };
 
+// Get current local date and time
 function getLocalDateTime() {
   const now = new Date();
 
@@ -61,28 +61,35 @@ export default function CreateEventPage() {
 
   // Fetch categories
   useEffect(() => {
-    const controller = new AbortController();
+    let ignore = false;
 
     const fetchCategories = async () => {
       try {
-        const response = await fetch(
-          `${API_URL}/api/categories`,
-          { signal: controller.signal }
-        );
+        if (!API_URL) {
+          throw new Error("API URL is not configured.");
+        }
+
+        const response = await fetch(`${API_URL}/api/categories`);
 
         if (!response.ok) {
-          throw new Error("Failed to fetch categories");
+          throw new Error("Failed to fetch categories.");
         }
 
         const data: Category[] = await response.json();
 
-        setCategories(data);
-      } catch {
-        if (!controller.signal.aborted) {
-          setCategoryError("Unable to load categories.");
+        if (!ignore) {
+          setCategories(data);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setCategoryError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load categories."
+          );
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setLoadingCategories(false);
         }
       }
@@ -91,9 +98,13 @@ export default function CreateEventPage() {
     fetchCategories();
     setMinDate(getLocalDateTime());
 
-    return () => controller.abort();
+    // Ignore late responses after unmount
+    return () => {
+      ignore = true;
+    };
   }, []);
 
+  // Update form fields
   const updateForm = (
     field: keyof typeof initialForm,
     value: string
@@ -105,14 +116,23 @@ export default function CreateEventPage() {
   };
 
   // Create Event
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
     if (isSubmitting) return;
 
-    const { title, description, category, location, eventDate, imageUrl } =
-      form;
+    const {
+      title,
+      description,
+      category,
+      location,
+      eventDate,
+      imageUrl,
+    } = form;
 
+    // Required field validation
     if (
       !title.trim() ||
       !description.trim() ||
@@ -121,27 +141,34 @@ export default function CreateEventPage() {
       !eventDate ||
       !imageUrl.trim()
     ) {
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Missing Information",
         text: "Please fill in all fields.",
+        confirmButtonColor: "#B44942",
       });
       return;
     }
 
+    // Future date validation
     const date = new Date(eventDate);
 
-    if (Number.isNaN(date.getTime()) || date <= new Date()) {
+    if (
+      Number.isNaN(date.getTime()) ||
+      date <= new Date()
+    ) {
       setMinDate(getLocalDateTime());
 
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Invalid Date",
         text: "Please select a future date and time.",
+        confirmButtonColor: "#B44942",
       });
       return;
     }
 
+    // Image URL validation
     try {
       const url = new URL(imageUrl.trim());
 
@@ -149,10 +176,11 @@ export default function CreateEventPage() {
         throw new Error("Invalid URL");
       }
     } catch {
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Invalid Image URL",
         text: "Please provide a valid image URL.",
+        confirmButtonColor: "#B44942",
       });
       return;
     }
@@ -160,13 +188,19 @@ export default function CreateEventPage() {
     setIsSubmitting(true);
 
     try {
-      // Get Better Auth JWT
+      if (!API_URL) {
+        throw new Error("API URL is not configured.");
+      }
+
+      // Get JWT from Better Auth
       const tokenResponse = await fetch("/api/auth/token", {
         credentials: "include",
       });
 
       if (!tokenResponse.ok) {
-        throw new Error("Authentication failed. Please log in again.");
+        throw new Error(
+          "Authentication failed. Please log in again."
+        );
       }
 
       const { token } = await tokenResponse.json();
@@ -175,7 +209,7 @@ export default function CreateEventPage() {
         throw new Error("Authentication token not found.");
       }
 
-      // Save event
+      // Send event to Express backend
       const response = await fetch(`${API_URL}/api/events`, {
         method: "POST",
         headers: {
@@ -192,24 +226,30 @@ export default function CreateEventPage() {
         }),
       });
 
-      const result = await response.json();
+      const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to create event.");
+        throw new Error(
+          result.message || "Failed to create event."
+        );
       }
 
       // Reset form
       setForm({ ...initialForm });
       setMinDate(getLocalDateTime());
 
+      // Success notification
       await Swal.fire({
         icon: "success",
         title: "Event Created!",
         text: "Your community event was created successfully.",
         confirmButtonColor: "#B44942",
       });
+
+      // Redirect to upcoming events
+      router.push("/upcoming-events");
     } catch (error) {
-      Swal.fire({
+      await Swal.fire({
         icon: "error",
         title: "Something Went Wrong",
         text:
@@ -303,7 +343,9 @@ export default function CreateEventPage() {
               typeof value === "string" ? value : ""
             )
           }
-          isDisabled={loadingCategories || categories.length === 0}
+          isDisabled={
+            loadingCategories || categories.length === 0
+          }
         >
           <Label>Event Category</Label>
 
@@ -334,7 +376,7 @@ export default function CreateEventPage() {
           </p>
         )}
 
-        {/* Description */}
+        {/* Event Description */}
         <TextField
           name="description"
           isRequired
@@ -353,7 +395,7 @@ export default function CreateEventPage() {
           />
         </TextField>
 
-        {/* Location */}
+        {/* Event Location */}
         <TextField
           name="location"
           isRequired
@@ -387,7 +429,9 @@ export default function CreateEventPage() {
             type="datetime-local"
             variant="secondary"
             min={minDate}
-            onFocus={() => setMinDate(getLocalDateTime())}
+            onFocus={() =>
+              setMinDate(getLocalDateTime())
+            }
           />
         </TextField>
 
@@ -395,7 +439,7 @@ export default function CreateEventPage() {
           Only future dates and times are allowed.
         </p>
 
-        {/* Image URL */}
+        {/* Event Image URL */}
         <TextField
           name="imageUrl"
           isRequired
@@ -419,7 +463,7 @@ export default function CreateEventPage() {
           />
         </TextField>
 
-        {/* Form Buttons */}
+        {/* Form Actions */}
         <div className="flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:justify-end">
           <Button
             type="button"
@@ -442,7 +486,10 @@ export default function CreateEventPage() {
             className="bg-accent text-white"
           >
             <CalendarPlus size={18} />
-            {isSubmitting ? "Creating Event..." : "Create Event"}
+
+            {isSubmitting
+              ? "Creating Event..."
+              : "Create Event"}
           </Button>
         </div>
       </form>

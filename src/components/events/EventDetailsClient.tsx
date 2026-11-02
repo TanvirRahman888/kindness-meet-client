@@ -1,22 +1,21 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { notFound, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import Swal from "sweetalert2";
 
 import { authClient } from "@/app/lib/auth-client";
 
-import EventOrganizerCard from "./EventOrganizerCard";
+import EventOrganizerCard from "@/components/events/EventOrganizerCard";
 import JoinedVolunteersCard, {
   type Volunteer,
-} from "./JoinedVolunteersCard";
-import VolunteerJoinRules from "./VolunteerJoinRules";
-import EventDetailsLoading from "./EventDetailsLoading";
+} from "@/components/events/JoinedVolunteersCard";
+import VolunteerJoinRules from "@/components/events/VolunteerJoinRules";
+import EventDetailsLoading from "@/components/events/EventDetailsLoading";
 
-import type { EventItem } from "./EventCard";
+import type { EventItem } from "@/components/events/EventCard";
 
 import {
   ArrowLeft,
@@ -34,25 +33,16 @@ type EventDetails = EventItem & {
   creatorImage?: string | null;
 };
 
-type Props = {
-  id: string;
-};
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export default function EventDetailsClient({ id }: Props) {
+export default function EventDetailsPage() {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const { data: session, isPending } =
-    authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
 
-  const [event, setEvent] = useState<EventDetails | null>(
-    null
-  );
-
-  const [volunteers, setVolunteers] = useState<Volunteer[]>(
-    []
-  );
+  const [event, setEvent] = useState<EventDetails | null>(null);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
@@ -63,36 +53,35 @@ export default function EventDetailsClient({ id }: Props) {
 
   // Fetch event details and volunteers
   useEffect(() => {
-    const controller = new AbortController();
+    let ignore = false;
 
     async function loadEvent() {
       setLoading(true);
       setError("");
       setEventMissing(false);
       setImageError(false);
+      setEvent(null);
+      setVolunteers([]);
+      setEventEnded(false);
 
       try {
         if (!API_URL) {
-          throw new Error(
-            "NEXT_PUBLIC_API_URL is not configured."
-          );
+          throw new Error("NEXT_PUBLIC_API_URL is not configured.");
         }
 
-        const [eventRes, volunteersRes] =
-          await Promise.all([
-            fetch(`${API_URL}/api/events/${id}`, {
-              signal: controller.signal,
-            }),
+        // Fetch both APIs together
+        const [eventRes, volunteersRes] = await Promise.all([
+          fetch(`${API_URL}/api/events/${id}`, {
+            cache: "no-store",
+          }),
+          fetch(`${API_URL}/api/events/${id}/volunteers`, {
+            cache: "no-store",
+          }),
+        ]);
 
-            fetch(
-              `${API_URL}/api/events/${id}/volunteers`,
-              {
-                signal: controller.signal,
-              }
-            ),
-          ]);
+        // Ignore outdated requests
+        if (ignore) return;
 
-        // Event not found
         if (eventRes.status === 404) {
           setEventMissing(true);
           return;
@@ -106,34 +95,23 @@ export default function EventDetailsClient({ id }: Props) {
           throw new Error("Failed to load volunteers.");
         }
 
-        const [eventData, volunteersData]: [
-          EventDetails,
-          Volunteer[],
-        ] = await Promise.all([
-          eventRes.json(),
-          volunteersRes.json(),
-        ]);
+        const [eventData, volunteersData]: [EventDetails, Volunteer[]] =
+          await Promise.all([eventRes.json(), volunteersRes.json()]);
 
-        if (!controller.signal.aborted) {
-          setEvent(eventData);
-          setVolunteers(volunteersData);
+        if (ignore) return;
 
-          // Calculate outside render to avoid prerender warning
-          setEventEnded(
-            new Date(eventData.eventDate).getTime() <=
-              Date.now()
-          );
-        }
+        setEvent(eventData);
+        setVolunteers(volunteersData);
+
+        setEventEnded(new Date(eventData.eventDate).getTime() <= Date.now());
       } catch (err) {
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setError(
-            err instanceof Error
-              ? err.message
-              : "Something went wrong."
+            err instanceof Error ? err.message : "Something went wrong.",
           );
         }
       } finally {
-        if (!controller.signal.aborted) {
+        if (!ignore) {
           setLoading(false);
         }
       }
@@ -141,39 +119,33 @@ export default function EventDetailsClient({ id }: Props) {
 
     void loadEvent();
 
-    return () => controller.abort();
+    // Ignore old responses when page changes
+    return () => {
+      ignore = true;
+    };
   }, [id]);
 
-  // Current user status
-  const isOrganizer =
-    !!session?.user &&
-    session.user.id === event?.creatorId;
+  // Check whether current user owns this event
+  const isOrganizer = !!session?.user && session.user.id === event?.creatorId;
 
+  // Check whether user already joined
   const alreadyJoined =
     !!session?.user &&
-    volunteers.some(
-      (volunteer) =>
-        volunteer.userId === session.user.id
-    );
+    volunteers.some((volunteer) => volunteer.userId === session.user.id);
 
   // Join Event
   const handleJoin = async () => {
-    if (
-      isPending ||
-      joining ||
-      !event ||
-      eventEnded
-    ) {
+    if (isPending || joining || !event || eventEnded) {
       return;
     }
 
-    // Redirect unauthenticated users
+    // Redirect guest to login
     if (!session?.user) {
       router.push("/login");
       return;
     }
 
-    // Prevent organizer and duplicate joins
+    // Prevent organizer or duplicate joins
     if (isOrganizer || alreadyJoined) {
       return;
     }
@@ -182,12 +154,10 @@ export default function EventDetailsClient({ id }: Props) {
 
     try {
       if (!API_URL) {
-        throw new Error(
-          "NEXT_PUBLIC_API_URL is not configured."
-        );
+        throw new Error("NEXT_PUBLIC_API_URL is not configured.");
       }
 
-      // Get Better Auth JWT
+      // Get JWT from Better Auth
       const tokenRes = await fetch("/api/auth/token", {
         credentials: "include",
       });
@@ -199,45 +169,36 @@ export default function EventDetailsClient({ id }: Props) {
       const { token } = await tokenRes.json();
 
       if (!token) {
-        throw new Error(
-          "Authentication token not found."
-        );
+        throw new Error("Authentication token not found.");
       }
 
-      // Join Event API
-      const response = await fetch(
-        `${API_URL}/api/events/${id}/join`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Send request to Express backend
+      const response = await fetch(`${API_URL}/api/events/${id}/join`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          result.message || "Failed to join event."
-        );
+        throw new Error(result.message || "Failed to join event.");
       }
 
-      const newVolunteer: Volunteer =
-        result.volunteer || {
-          userId: session.user.id,
-          userName: session.user.name,
-          userImage: session.user.image,
-        };
+      const newVolunteer: Volunteer = result.volunteer || {
+        userId: session.user.id,
+        userName: session.user.name,
+        userImage: session.user.image,
+      };
 
-      // Update volunteers without reloading
+      // Update volunteer list without page reload
       setVolunteers((previous) => {
-        if (
-          previous.some(
-            (volunteer) =>
-              volunteer.userId === newVolunteer.userId
-          )
-        ) {
+        const exists = previous.some(
+          (volunteer) => volunteer.userId === newVolunteer.userId,
+        );
+
+        if (exists) {
           return previous;
         }
 
@@ -256,10 +217,7 @@ export default function EventDetailsClient({ id }: Props) {
       await Swal.fire({
         icon: "error",
         title: "Unable to Join",
-        text:
-          err instanceof Error
-            ? err.message
-            : "Please try again.",
+        text: err instanceof Error ? err.message : "Please try again.",
         confirmButtonColor: "#B44942",
         background: "var(--surface)",
         color: "var(--foreground)",
@@ -269,17 +227,17 @@ export default function EventDetailsClient({ id }: Props) {
     }
   };
 
-  // Loading State
+  // Loading state
   if (loading) {
     return <EventDetailsLoading />;
   }
 
-  // Not Found
+  // Event not found
   if (eventMissing) {
     notFound();
   }
 
-  // Error State
+  // Error state
   if (error || !event) {
     return (
       <main className="flex min-h-[60vh] flex-col items-center justify-center gap-5 px-4 text-center">
@@ -309,27 +267,21 @@ export default function EventDetailsClient({ id }: Props) {
   // Format event date
   const date = new Date(event.eventDate);
 
-  const formattedDate = date.toLocaleDateString(
-    "en-US",
-    {
-      weekday: "short",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "Asia/Dhaka",
-    }
-  );
+  const formattedDate = date.toLocaleDateString("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Dhaka",
+  });
 
-  const formattedTime = date.toLocaleTimeString(
-    "en-US",
-    {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "Asia/Dhaka",
-    }
-  );
+  const formattedTime = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Dhaka",
+  });
 
-  // Join button label
+  // Set join button text
   let buttonLabel = "Join Event";
 
   if (isPending) {
@@ -345,16 +297,11 @@ export default function EventDetailsClient({ id }: Props) {
   }
 
   const buttonDisabled =
-    isPending ||
-    isOrganizer ||
-    alreadyJoined ||
-    eventEnded ||
-    joining;
+    isPending || joining || isOrganizer || alreadyJoined || eventEnded;
 
   return (
     <main className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:py-12">
       <div className="mx-auto max-w-6xl">
-
         {/* Back Link */}
         <Link
           href="/upcoming-events"
@@ -366,7 +313,6 @@ export default function EventDetailsClient({ id }: Props) {
 
         {/* Event Banner */}
         <section className="relative flex min-h-85 items-end overflow-hidden rounded-3xl bg-brand-peach/30 sm:min-h-110">
-
           {/* Banner Image */}
           {event.imageUrl && !imageError ? (
             <Image
@@ -390,7 +336,6 @@ export default function EventDetailsClient({ id }: Props) {
 
           {/* Banner Content */}
           <div className="relative z-10 w-full p-6 sm:p-9 lg:p-12">
-
             {/* Category */}
             <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#B44942]">
               <HeartHandshake size={15} />
@@ -404,40 +349,29 @@ export default function EventDetailsClient({ id }: Props) {
 
             {/* Event Information */}
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-white/90">
-
               {/* Location */}
               <span className="inline-flex items-center gap-2">
-                <MapPin
-                  size={17}
-                  className="text-[#FFD9BA]"
-                />
+                <MapPin size={17} className="text-[#FFD9BA]" />
                 {event.location}
               </span>
 
               {/* Date */}
               <span className="inline-flex items-center gap-2">
-                <CalendarDays
-                  size={17}
-                  className="text-[#FFD9BA]"
-                />
+                <CalendarDays size={17} className="text-[#FFD9BA]" />
                 {formattedDate}
               </span>
 
               {/* Time */}
               <span className="inline-flex items-center gap-2">
-                <Clock3
-                  size={17}
-                  className="text-[#FFD9BA]"
-                />
+                <Clock3 size={17} className="text-[#FFD9BA]" />
                 {formattedTime}
               </span>
             </div>
           </div>
         </section>
 
-        {/* Volunteers and Join Action */}
+        {/* Volunteers and Join Button */}
         <section className="mt-6 flex flex-col gap-5 rounded-2xl border border-border bg-surface p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-
           {/* Volunteer Count */}
           <div className="flex items-center gap-4">
             <div className="flex size-13 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
@@ -477,13 +411,10 @@ export default function EventDetailsClient({ id }: Props) {
 
         {/* Event Details */}
         <div className="mt-8 grid gap-7 lg:grid-cols-[minmax(0,1fr)_320px]">
-
           {/* Main Content */}
           <div className="space-y-6">
-
             {/* About Event */}
             <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
-
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex size-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
                   <HeartHandshake size={23} />
@@ -511,7 +442,6 @@ export default function EventDetailsClient({ id }: Props) {
 
           {/* Right Sidebar */}
           <aside className="space-y-6">
-
             {/* Event Organizer */}
             <EventOrganizerCard
               name={event.creatorName}
@@ -520,9 +450,7 @@ export default function EventDetailsClient({ id }: Props) {
             />
 
             {/* Joined Volunteers */}
-            <JoinedVolunteersCard
-              volunteers={volunteers}
-            />
+            <JoinedVolunteersCard volunteers={volunteers} />
 
             {/* Community Participation */}
             <div className="rounded-2xl border border-border bg-brand-butter/25 p-5">
@@ -535,9 +463,8 @@ export default function EventDetailsClient({ id }: Props) {
               </div>
 
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                Every volunteer matters. Your time and
-                contribution can make a meaningful difference
-                in someone&apos;s life.
+                Every volunteer matters. Your time and contribution can make a
+                meaningful difference in someone&apos;s life.
               </p>
             </div>
           </aside>
