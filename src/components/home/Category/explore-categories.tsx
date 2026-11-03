@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import { connection } from "next/server";
 
 import {
   ArrowRight,
@@ -13,22 +14,28 @@ import CategoryCard, {
 
 import ExploreCategoriesEmpty from "./explore-categories-empty";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL;
 
 type CategoryEvent = {
   category: string;
 };
 
 export default async function ExploreCategories() {
+  // Wait for an actual request before fetching data
+  await connection();
+
   let categories: EventCategory[] = [];
   let events: CategoryEvent[] = [];
   let hasError = false;
 
   try {
     if (!API_URL) {
-      throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+      throw new Error("API URL is not configured.");
     }
 
+    // Fetch categories and events from Express
     const [categoryResponse, eventsResponse] =
       await Promise.all([
         fetch(`${API_URL}/api/categories`, {
@@ -40,7 +47,9 @@ export default async function ExploreCategories() {
       ]);
 
     if (!categoryResponse.ok || !eventsResponse.ok) {
-      throw new Error("Failed to fetch categories.");
+      throw new Error(
+        "Failed to fetch categories or events."
+      );
     }
 
     [categories, events] = await Promise.all([
@@ -136,6 +145,7 @@ export default async function ExploreCategories() {
             </Link>
           </div>
         )}
+
       </div>
     </section>
   );

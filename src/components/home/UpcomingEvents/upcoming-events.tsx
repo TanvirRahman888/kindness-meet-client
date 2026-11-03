@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import { connection } from "next/server";
 
 import {
   ArrowRight,
@@ -11,18 +12,24 @@ import EventCard, {
   type EventItem,
 } from "@/components/events/EventCard";
 
-import UpcomingEventsEmpty from "../UpcomingEvents/upcoming-events-empty";
+import UpcomingEventsEmpty from "./upcoming-events-empty";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL;
 
+// Fetch latest 6 upcoming events
 async function getUpcomingEvents(): Promise<EventItem[]> {
   if (!API_URL) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+    throw new Error("API URL is not configured.");
   }
 
-  const response = await fetch(`${API_URL}/api/events`, {
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${API_URL}/api/events?limit=6`,
+    {
+      cache: "no-store",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Failed to fetch upcoming events.");
@@ -30,10 +37,14 @@ async function getUpcomingEvents(): Promise<EventItem[]> {
 
   const events: EventItem[] = await response.json();
 
+  // Keep maximum 6 events even if backend ignores limit
   return events.slice(0, 6);
 }
 
 export default async function UpcomingEvents() {
+  // Prevent fetching during build-time prerendering
+  await connection();
+
   let events: EventItem[] = [];
   let hasError = false;
 
@@ -55,6 +66,7 @@ export default async function UpcomingEvents() {
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
 
           <div className="max-w-2xl">
+
             {/* Badge */}
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-4 py-2 text-xs font-semibold text-accent">
               <Sparkles size={15} />
@@ -64,7 +76,9 @@ export default async function UpcomingEvents() {
             {/* Title */}
             <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-[42px]">
               Discover Upcoming
-              <span className="text-accent"> Community Events</span>
+              <span className="text-accent">
+                {" "}Community Events
+              </span>
             </h2>
 
             {/* Description */}
@@ -137,6 +151,7 @@ export default async function UpcomingEvents() {
             </Link>
           </div>
         )}
+
       </div>
     </section>
   );
