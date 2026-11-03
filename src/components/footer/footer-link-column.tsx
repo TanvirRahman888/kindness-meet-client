@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 type FooterLink = {
   label: string;
@@ -17,31 +18,30 @@ export default function FooterLinkColumn({
 }: Props) {
   return (
     <div>
+      {/* Column Heading */}
       <h3 className="text-sm font-bold text-white">
         {title}
       </h3>
 
-      <ul className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-        {links.map((link, index) => (
-          <li
-            key={link.href}
-            className="inline-flex items-center gap-2"
-          >
+      {/* Accent Line */}
+      <div className="mt-3 h-0.5 w-8 bg-[#B44942]" />
+
+      {/* Navigation Links */}
+      <ul className="mt-6 space-y-3.5">
+        {links.map((link) => (
+          <li key={link.href}>
             <Link
               href={link.href}
-              className="text-xs text-white/65 transition-colors hover:text-[#F2B4A7]"
+              className="group inline-flex items-center gap-1.5 text-sm leading-5 text-white/55 transition-all duration-200 hover:translate-x-1 hover:text-[#E7A69F]"
             >
-              {link.label}
-            </Link>
+              <span>{link.label}</span>
 
-            {index < links.length - 1 && (
-              <span
+              <ArrowUpRight
+                size={13}
+                className="opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                 aria-hidden="true"
-                className="text-xs text-white/30"
-              >
-                ·
-              </span>
-            )}
+              />
+            </Link>
           </li>
         ))}
       </ul>
