@@ -1,15 +1,11 @@
+
 import { betterAuth } from "better-auth";
-import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { jwt } from "better-auth/plugins";
 
-const uri = process.env.MONGODB_URI;
+import { mongoClientPromise } from "./mongodb";
 
-if (!uri) {
-  throw new Error("MONGODB_URI is not defined");
-}
-
-const client = new MongoClient(uri);
+const client = await mongoClientPromise;
 const db = client.db("KindnessMeet");
 
 export const auth = betterAuth({
@@ -42,5 +38,6 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
   }),
+
   plugins: [jwt()],
 });
